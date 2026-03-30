@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const editor = document.getElementById('editor');
     const autoToggle = document.getElementById('auto-toggle');
     const toggleLabel = document.getElementById('toggle-label');
-    const fontSelect = document.getElementById('font-select');
     
     let autoConvertEnabled = true;
     
@@ -111,11 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     autoToggle.addEventListener('change', () => {
         autoConvertEnabled = autoToggle.checked;
         updateToggleLabel();
-    });
-    
-    // Font change (pure CSS, no external fonts needed)
-    fontSelect.addEventListener('change', () => {
-        editor.style.fontFamily = fontSelect.value;
     });
     
     // Core conversion: happens ONLY on SPACE key
@@ -144,10 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editor.selectionStart = editor.selectionEnd = newText.length;
         }
     });
-    
-    console.log('%c✅ Kannada Editor ready! Pure HTML + CSS + JS only.', 'color:#00c853; font-weight:bold');
-    updateToggleLabel();
-    
+
     // Optional: support "Enter" without breaking conversion (just in case)
     editor.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && autoConvertEnabled) {
