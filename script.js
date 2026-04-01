@@ -112,6 +112,25 @@ document.addEventListener('DOMContentLoaded', () => {
         updateToggleLabel();
     });
     
+    // NEW: Keyboard shortcut - Ctrl + K to toggle Auto Kannada
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key.toLowerCase() === 'k') {
+            e.preventDefault(); // FIXME Prevent browser default (e.g. find in some browsers)
+            
+            // Toggle the checkbox and state
+            autoToggle.checked = !autoToggle.checked;
+            autoConvertEnabled = autoToggle.checked;
+            updateToggleLabel();
+            
+            // FIXME (should this be in the css file somehow?) Optional: visual feedback (brief flash on toggle label)
+            toggleLabel.style.transition = 'transform 0.1s';
+            toggleLabel.style.transform = 'scale(1.15)';
+            setTimeout(() => {
+                toggleLabel.style.transform = 'scale(1)';
+            }, 150);
+        }
+    });
+    
     // Core conversion: happens ONLY on SPACE key
     editor.addEventListener('keyup', (e) => {
         if (!autoConvertEnabled) return;
@@ -145,4 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // No special handling needed - space logic already covers words
         }
     });
+
+    // Initial label update
+    updateToggleLabel();
 });
