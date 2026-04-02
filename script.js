@@ -139,25 +139,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key !== ' ') return;
         
         const fullText = editor.value;
-        const trimmed = fullText.trimEnd();
-        const words = trimmed.split(/\s+/);
+        const cursorPosition = editor.selectionStart; 
+        const suffixText = (fullText.length == cursorPosition) ? " " : fullText.slice(cursorPosition-1); 
+        let word = "";
         
-        if (words.length === 0) return;
-        
-        const lastWord = words[words.length - 1];
-        const convertedWord = transliterateToKannada(lastWord);
-        
-        // Only replace if conversion actually changed something
-        if (convertedWord !== lastWord) {
-            words[words.length - 1] = convertedWord;
-            
-            let newText = words.join(' ');
-            if (fullText.endsWith(' ')) newText += ' ';
-            
-            editor.value = newText;
-            // Keep cursor at end
-            editor.selectionStart = editor.selectionEnd = newText.length;
+        for (let i=cursorPosition-2; i>=0; i--) {
+            if (fullText[i] == ' ' || fullText[i] == '\n' || fullText[i] == '\t') {
+                break; 
+            } else {
+                word += fullText[i]; 
+            }
         }
+        const prefixText = fullText.slice(0, Math.max(0, cursorPosition-word.length-1)); 
+        word = word.split('').reverse().join(''); 
+
+        // console.log(`prefix: |${prefixText}|`); 
+        // console.log(`word: |${word}|`); 
+        // console.log(`suffix: |${suffixText}|`); 
+
+        const convertedWord = transliterateToKannada(word); 
+
+        // console.log(`word: ${word}; converted word: ${convertedWord}`);  
+
+        const newCursorPosition = prefixText.length + convertedWord.length + 1; 
+        const newText = prefixText + convertedWord + suffixText;  
+        
+        editor.value = newText; 
+        editor.selectionStart = newCursorPosition; 
+        editor.selectionEnd = newCursorPosition; 
     });
 
     // Initial label update
