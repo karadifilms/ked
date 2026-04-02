@@ -104,6 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateToggleLabel() {
         toggleLabel.textContent = autoConvertEnabled ? 'Auto Kannada ON' : 'Auto Kannada OFF';
         toggleLabel.style.color = autoConvertEnabled ? '#00c853' : '#aaa';
+
+        autoToggle.checked = autoConvertEnabled ? true : false; 
     }
     
     // Toggle auto conversion
@@ -155,13 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
             editor.value = newText;
             // Keep cursor at end
             editor.selectionStart = editor.selectionEnd = newText.length;
-        }
-    });
-
-    // Optional: support "Enter" without breaking conversion (just in case)
-    editor.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && autoConvertEnabled) {
-            // No special handling needed - space logic already covers words
         }
     });
 
