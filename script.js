@@ -1,96 +1,143 @@
-// Pure JavaScript phonetic English → Kannada transliterator (self-contained, no external libraries)
+const isDebugMode = true; 
+
 const consonants = {
-    'kh': 'ಖ', 'gh': 'ಘ', 'ng': 'ಙ',
-    'ch': 'ಛ', 'jh': 'ಝ', 'ny': 'ಞ',
-    'th': 'ಥ', 'dh': 'ಧ',
-    'ph': 'ಫ', 'bh': 'ಭ',
-    'sh': 'ಶ',
-    'T': 'ಟ', 'Th': 'ಠ',
-    'D': 'ಡ', 'Dh': 'ಢ',
-    'N': 'ಣ', 'L': 'ಳ', 'S': 'ಷ',
-    'k': 'ಕ', 'g': 'ಗ',
-    'c': 'ಚ', 'j': 'ಜ',
-    't': 'ತ', 'd': 'ದ',
-    'n': 'ನ', 'p': 'ಪ', 'b': 'ಬ',
-    'm': 'ಮ', 'y': 'ಯ', 'r': 'ರ',
-    'l': 'ಲ', 'v': 'ವ', 's': 'ಸ', 'h': 'ಹ'
+  'k':'ಕ', 'kh':'ಖ', 'g':'ಗ', 'gh':'ಘ', 'ng':'ಙ', 
+  'ch':'ಚ', 'Ch':'ಛ', 'j':'ಜ', 'jh':'ಝ', 'ny':'ಞ', 
+  'T':'ಟ', 'Th':'ಠ', 'D':'ಡ', 'Dh':'ಢ', 'N':'ಣ', 
+  't':'ತ', 'th':'ಥ', 'd':'ದ', 'dh':'ಧ', 'n':'ನ',
+  'p':'ಪ', 'ph':'ಫ', 'b':'ಬ', 'bh':'ಭ', 'm':'ಮ', 
+  'y':'ಯ', 'r':'ರ', 'l':'ಲ', 'v':'ವ', 'sh':'ಶ', 'Sh':'ಷ', 's':'ಸ', 'h':'ಹ', 'L':'ಳ' 
 };
 
-const standaloneVowels = {
-    'a': 'ಅ', 'aa': 'ಆ',
-    'i': 'ಇ', 'ii': 'ಈ',
-    'u': 'ಉ', 'uu': 'ಊ',
-    'e': 'ಎ', 'ee': 'ಏ',
-    'ai': 'ಐ',
-    'o': 'ಒ', 'oo': 'ಓ', 'au': 'ಔ'
+const swaragalu = {
+    'a': {standalone:'ಅ',matra:''}, 
+    'aa': {standalone:'ಆ', matra:'ಾ'},
+    'i': {standalone:'ಇ', matra:'ಿ'}, 
+    'ii': {standalone:'ಈ', matra:'ೀ'},
+    'u': {standalone:'ಉ', matra:'ು'}, 
+    'uu': {standalone:'ಊ', matra:'ೂ'},
+    'R': {standalone:'ಋ', matra:'ೃ'},
+    'e': {standalone:'ಎ', matra:'ೆ'}, 
+    'ee': {standalone:'ಏ', matra:'ೇ'},
+    'ai': {standalone:'ಐ', matra:'ೈ'},
+    'o': {standalone:'ಒ', matra:'ೊ'}, 
+    'oo': {standalone:'ಓ', matra:'ೋ'}, 
+    'au': {standalone:'ಔ', matra:'ೌ'}, 
 };
 
-const matras = {
-    'a': '',
-    'aa': 'ಾ',
-    'i': 'ಿ', 'ii': 'ೀ',
-    'u': 'ು', 'uu': 'ೂ',
-    'e': 'ೆ', 'ee': 'ೇ',
-    'ai': 'ೈ',
-    'o': 'ೊ', 'oo': 'ೋ', 'au': 'ೌ'
+const yogavahas = {
+    'M': {standalone:'ಅಂ', matra:'ಂ'}, 
+    'Ha': {standalone:'ಅಃ', matra:'ಃ'}
+}
+
+const vowels = {
+    ...swaragalu,
+    ...yogavahas
 };
 
-function transliterateToKannada(input) {
-    if (!input || typeof input !== 'string' || input.trim() === '') return input;
-    
-    let str = input.toLowerCase(); // case-insensitive for most, but we kept capital support in map
-    let result = '';
-    let i = 0;
-    let lastWasConsonant = false;
+const virama = {
+    '\\': '್'
+};
 
-    // Restore original case handling for retroflex (T/D/N/L/S)
-    // But for simplicity we use the map as-is (capitals are already handled)
-    str = input; // keep original for capital detection
+const VIRAMA_LETTER_EN = Object.keys(virama)[0]; 
+const VIRAMA_LETTER_KN = virama[VIRAMA_LETTER_EN]; 
 
-    while (i < str.length) {
-        let matched = false;
-        
-        // Try longest match first (3 → 2 → 1 chars)
-        for (let len = 3; len >= 1; len--) {
-            if (i + len > str.length) continue;
-            const chunk = str.substring(i, i + len);
-            
-            // Consonant match
-            if (consonants[chunk] !== undefined) {
-                if (lastWasConsonant) {
-                    result += '್' + consonants[chunk]; // virama + consonant (creates conjuncts like ನ್ನ, ಕ್ಕ)
-                } else {
-                    result += consonants[chunk];
+const ZERO_WIDTH_NON_JOINER = '\u200C';
+
+if (isDebugMode) {console.assert(Object.keys(virama).length == 1, `virama length has to be 1`);}
+
+function transliterateToKannada(word) {
+    const wordLength = word.length; 
+    let prevLetterType = "virama"; // consonant, vowel, virama
+    let convertedWord = ""; 
+
+    let pos = 0; 
+    while (pos < wordLength) {
+        const twoLetters = word.slice(pos, pos+2); 
+        const singleLetter = word.slice(pos, pos+1); 
+
+        if (isDebugMode) console.log(`converted word so far: ${convertedWord}`)
+
+        for (letter of [twoLetters, singleLetter]) {
+            // vowel  
+            if (letter in vowels) {
+                if (isDebugMode) console.log(`letter: ${letter} is a vowel`);
+
+                // case 01: last letter was a consonant 
+                //          then we use the matra next to the 
+                //          previous consonant. 
+                if (prevLetterType == "consonant") {
+                    convertedWord += vowels[letter].matra; 
+                    pos += letter.length; 
+                    prevLetterType = "vowel";
+                    break; 
                 }
-                lastWasConsonant = true;
-                i += len;
-                matched = true;
+
+                // case 02: last letter was a vowel, if current is a yogavaha
+                //          then use matra, else use standalone 
+                if (prevLetterType == "vowel") { 
+                    console.log(`${letter in yogavahas}`); 
+                    convertedWord += (letter in yogavahas) ? vowels[letter].matra : vowels[letter].standalone; 
+                    pos += letter.length; 
+                    prevLetterType = "vowel";
+                    break; 
+                }
+
+                // case 03: last letter was a virama, then use standalone 
+                if (prevLetterType == "virama") { 
+                    convertedWord += vowels[letter].standalone; 
+                    pos += letter.length; 
+                    prevLetterType = "vowel";
+                    break; 
+                }
+            }
+
+            // consonant 
+            if (letter in consonants) {
+                if (isDebugMode) console.log(`letter: ${letter} is a consonant`);
+                // case 01: if previous letter was a consonant, we are at the start of a
+                //          ottu akshara, so add a virama 
+                if (prevLetterType == "consonant") {
+                    convertedWord += VIRAMA_LETTER_KN; 
+                }
+
+                // add the current consonant as-is. 
+                convertedWord += consonants[letter]; 
+                pos += letter.length; 
+                prevLetterType = "consonant";
+
+                // if this is the last letter, then add a virama at the end. 
+                if (pos == wordLength) {
+                    convertedWord += VIRAMA_LETTER_KN; 
+                    prevLetterType = "virama";
+                }
+
+                break; 
+            }
+
+            // virama 
+            if (letter in virama) {
+                if (isDebugMode) console.log(`letter: ${letter} is a virama`);
+                // case 01: the only valid case is if previous letter was a consonant
+                //          still, we just behave and use it as-is. 
+                if (prevLetterType == "consonant") {
+                    convertedWord += virama[letter] + ZERO_WIDTH_NON_JOINER; 
+                    pos += letter.length;
+                    prevLetterType = "virama";
+                    break; 
+                }
+            }
+
+            // if no matches with virama, consonant or vowel, retain it as-is. 
+            if (letter.length == 1) {
+                convertedWord += letter; 
+                pos += letter.length;
+                prevLetterType = "virama";
                 break;
             }
-            
-            // Vowel match
-            if (standaloneVowels[chunk] !== undefined) {
-                if (lastWasConsonant && matras[chunk] !== undefined) {
-                    result += matras[chunk];
-                } else {
-                    result += standaloneVowels[chunk];
-                }
-                lastWasConsonant = false;
-                i += len;
-                matched = true;
-                break;
-            }
-        }
-        
-        // No phonetic match → keep original character (punctuation, numbers, spaces, etc.)
-        if (!matched) {
-            result += str[i];
-            lastWasConsonant = false;
-            i++;
         }
     }
-    
-    return result;
+    return convertedWord; 
 }
 
 // Main app logic
@@ -153,13 +200,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const prefixText = fullText.slice(0, Math.max(0, cursorPosition-word.length-1)); 
         word = word.split('').reverse().join(''); 
 
-        // console.log(`prefix: |${prefixText}|`); 
-        // console.log(`word: |${word}|`); 
-        // console.log(`suffix: |${suffixText}|`); 
+        if (isDebugMode) {
+            console.log(`prefix: |${prefixText}|`); 
+            console.log(`word: |${word}|`); 
+            console.log(`suffix: |${suffixText}|`); 
+        }
 
-        const convertedWord = transliterateToKannada(word); 
-
-        // console.log(`word: ${word}; converted word: ${convertedWord}`);  
+        let convertedWord = ""; 
+        if (word != "") {
+            convertedWord = transliterateToKannada(word); 
+            if (isDebugMode) console.log(`word: ${word}; converted word: ${convertedWord}`);  
+        }
 
         const newCursorPosition = prefixText.length + convertedWord.length + 1; 
         const newText = prefixText + convertedWord + suffixText;  
