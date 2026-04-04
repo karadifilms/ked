@@ -44,6 +44,7 @@ const VIRAMA_LETTER_KN = virama[VIRAMA_LETTER_EN];
 
 const ZERO_WIDTH_NON_JOINER = '\u200C';
 
+// ensure that there is only one virama, transliteration relies on this assumption 
 if (isDebugMode) {console.assert(Object.keys(virama).length == 1, `virama length has to be 1`);}
 
 function transliterateToKannada(word) {
