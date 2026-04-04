@@ -17,20 +17,17 @@
                     <input type="checkbox" id="auto-toggle" checked>
                     <span class="slider"></span>
                 </label>
-                <span id="toggle-label" class="toggle-label">Auto Kannada</span>
+                <div id="toggle-label-and-helper">
+                    <span id="toggle-label" class="toggle-label"></span>
+                    <div id="toggle-helper">Ctrl+K to toggle</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="editor-container">
         <textarea id="editor" placeholder="Start typing in English...&#10;Press SPACE after each word to convert the last word to Kannada (if auto is ON)"></textarea>
-        <div id="helpbar">Hello</div>
-    </div>
-
-    <div class="footer">
-        <p>Type English words on your normal keyboard. Press <strong>SPACE</strong> after each word → it converts to Kannada.</p>
-        <p><small>Tip: Use capital letters for retroflex sounds (T = ಟ, D = ಡ, N = ಣ, L = ಳ, S = ಷ). Example: "kannada" → ಕನ್ನಡ</small></p>
-        <p><small><strong>Keyboard shortcut:</strong> <kbd>Ctrl</kbd> + <kbd>K</kbd> also toggles Auto Kannada</small></p>
+        <div id="helpbar"></div>
     </div>
 
     <script src="script.js"></script>

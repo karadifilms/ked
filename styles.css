@@ -11,6 +11,7 @@ body {
     flex-direction: column;
     overflow: hidden;
     touch-action: manipulation;
+    font-family: monospace;
 }
 
 .header {
@@ -28,7 +29,6 @@ body {
 
 h1 {
     font-size: 1.4rem;
-    font-weight: 600;
 }
 
 .controls {
@@ -42,6 +42,13 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+#toggle-label-and-helper {
+    display: flex; 
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .switch {
@@ -122,15 +129,15 @@ select {
     flex: 1;
     padding: 16px;
     display: flex;
+    gap: 12px;
     min-height: 0;
 }
 
 #editor {
-    flex: 1;
-    width: 100%;
+    flex: 4;
     height: 100%;
     padding: 20px;
-    font-size: 1.25rem;
+    font-size: 1.20rem;
     line-height: 1.6;
     border: 2px solid #ddd;
     border-radius: 12px;
@@ -138,13 +145,71 @@ select {
     outline: none;
     background: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    /* transition: font-family 0.2s ease; */
     overflow-y: auto;
 }
 
-#editor:focus {
-    border-color: #00c853;
-    box-shadow: 0 0 0 4px rgba(0, 200, 83, 0.15);
+#helpbar {
+    flex: 1;
+    overflow-y: auto;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    padding: 10px 8px;
+    min-height: 0;
+}
+
+#helpbar h2 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #eee;
+}
+
+.key-section {
+    margin-bottom: 8px;
+}
+
+.key-section h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #999;
+    margin-bottom: 3px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.key-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px 4px;
+}
+
+.key-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 2px;
+}
+
+.key-en {
+    color: #555;
+    font-size: 1.1rem;
+    min-width: 24px;
+}
+
+.key-arrow {
+    color: #ccc;
+    font-size: 0.8rem;
+}
+
+.key-kn {
+    color: #1a1a2e;
+    font-size: 1.1rem;
+    font-weight: 500;
 }
 
 .footer {
@@ -161,6 +226,7 @@ select {
     color: #00c853;
 }
 
+/* FIXME: is this needed? it doesn't even work on mobile phones. */ 
 @media (max-width: 600px) {
     .header {
         padding: 10px 12px;

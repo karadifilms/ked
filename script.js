@@ -1,4 +1,4 @@
-const isDebugMode = true; 
+const isDebugMode = false; 
 
 const consonants = {
   'k':'ಕ', 'kh':'ಖ', 'g':'ಗ', 'gh':'ಘ', 'ng':'ಙ', 
@@ -141,6 +141,31 @@ function transliterateToKannada(word) {
     return convertedWord; 
 }
 
+function buildKeyPanel() {
+    const panel = document.getElementById('helpbar');
+
+    function makeSection(title, entries) {
+        let html = `<div class="key-section"><h3>${title}</h3><div class="key-grid">`;
+        for (const [en, kn] of entries) {
+            html += `<div class="key-row"><span class="key-en">${en}</span><span class="key-arrow">→</span><span class="key-kn">${kn}</span></div>`;
+        }
+        html += '</div></div>';
+        return html;
+    }
+
+    const vowelEntries = Object.entries(swaragalu).map(([en, v]) => [en, v.standalone]);
+    const yogavahaEntries = Object.entries(yogavahas).map(([en, v]) => [en, v.standalone]);
+    const consonantEntries = Object.entries(consonants);
+    const viramaEntries = Object.entries(virama).map(([en, kn]) => [en, kn]);
+
+    panel.innerHTML =
+        '<h2>Key</h2>' +
+        makeSection('Swaras', vowelEntries) +
+        makeSection('Yogavahas', yogavahaEntries) +
+        makeSection('Vyanjanas', consonantEntries) +
+        makeSection('Virama', viramaEntries);
+}
+
 // Main app logic
 document.addEventListener('DOMContentLoaded', () => {
     const editor = document.getElementById('editor');
@@ -162,26 +187,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateToggleLabel();
     });
     
-    // NEW: Keyboard shortcut - Ctrl + K to toggle Auto Kannada
+    // Ctrl + K to toggle Auto Kannada
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key.toLowerCase() === 'k') {
-            e.preventDefault(); // FIXME Prevent browser default (e.g. find in some browsers)
+            // This is needed, in firefox Ctrl+K takes the cursor to the 
+            // search bar as a default behaviour. 
+            e.preventDefault(); 
             
             // Toggle the checkbox and state
             autoToggle.checked = !autoToggle.checked;
             autoConvertEnabled = autoToggle.checked;
             updateToggleLabel();
-            
-            // FIXME (should this be in the css file somehow?) Optional: visual feedback (brief flash on toggle label)
-            toggleLabel.style.transition = 'transform 0.1s';
-            toggleLabel.style.transform = 'scale(1.15)';
-            setTimeout(() => {
-                toggleLabel.style.transform = 'scale(1)';
-            }, 150);
         }
     });
     
-    // Core conversion: happens ONLY on SPACE key
+    // Core conversion: happens on SPACE key
     editor.addEventListener('keyup', (e) => {
         if (!autoConvertEnabled) return;
         if (e.key !== ' ') return;
@@ -221,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editor.selectionEnd = newCursorPosition; 
     });
 
-    // Initial label update
+    // Initial setup
     updateToggleLabel();
+    buildKeyPanel();
 });
