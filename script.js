@@ -119,14 +119,12 @@ function transliterateToKannada(word) {
             // virama 
             if (letter in virama) {
                 if (isDebugMode) console.log(`letter: ${letter} is a virama`);
-                // case 01: the only valid case is if previous letter was a consonant
-                //          still, we just behave and use it as-is. 
-                if (prevLetterType == "consonant") {
-                    convertedWord += virama[letter] + ZERO_WIDTH_NON_JOINER; 
-                    pos += letter.length;
-                    prevLetterType = "virama";
-                    break; 
-                }
+                // the only valid case is if previous letter was a consonant
+                // but we will behave and add the virama for all cases. 
+                convertedWord += virama[letter] + ZERO_WIDTH_NON_JOINER; 
+                pos += letter.length;
+                prevLetterType = "virama";
+                break; 
             }
 
             // if no matches with virama, consonant or vowel, retain it as-is. 
